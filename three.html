@@ -1,251 +1,27 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
+    <head>
+        <meta charset="utf-8" />
         <title>My first three.js app</title>
         <link rel="stylesheet" href="three.css" />
-        <!-- <img src="some128x64image.jpg" style="width:400px; height:200px"> -->
         
-        <!-- <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"> -->
-		<style>
-		html, body {
-  margin: 0;
-  height: 100%;
-}
-#c {
-  width: 100%;
-  height: 100%;
-  display: block;
-  
-}
-
-		</style>
-  </head>
-  <!-- <div id="container">
-    <canvas id="c"></canvas>
-    <div id="labels"></div>
-  </div> -->
-
-
-  <!-- <canvas id="c" tabindex="1"></canvas>
-    <div id="ui">
-      <div id="left"><img src="https://threejsfundamentals.org/threejs/resources/images/left.svg"></div>
-      <div style="flex: 0 0 40px;"></div>
-      <div id="right"><img src="https://threejsfundamentals.org/threejs/resources/images/right.svg"></div>
-    </div>
-    <div id="loading">
-      <div>
-        <div>...Đợi một chút...</div>
-        <div class="progress"><div id="progressbar"></div></div>
-      </div>
-    </div>
-    <div id="labels"></div> -->
-  
-    <canvas id="c"></canvas>
-    <!-- <div id="loading">
-      <div>
-        <div>...Đợi một chút...</div>
-        <div class="progress"><div id="progressbar"></div></div>
-      </div>
-    </div> -->
-  
-    
-	<body >
-
-        <!-- <script src="three.js"></script>
-        <script src="scene_graph.js"></script>
-        <div id="absolute red"></div> -->
         
-        <!-- <div>
-            <iframe id="background" src="http://localhost/three/three.html"></iframe>
+        <script type="module" src="three_camera.js"></script>
+
+        <style></style>
+
+        <canvas id="c"></canvas>
+        <div class="split"> 
+
             
-              <div id="content">
+            <div id="view1" tabindex="1"></div>
+            <div id="view2" tabindex="2"></div>
+        </div>
+
+        <body>
+            <script type="module">
                 
-                  <h1>QÙY HOA BẢO ĐIỂN</h1>
-                  <P>Nguồn gốc của Quỳ Hoa Bào Điển( sách viết trong áo bào ) được tiết lộ theo lời kể của Phương Chứng Đại Sư,<br> trụ trì 
-                    Thiếu Lâm Tự khi bàn việc cùng Lệnh Hồ Xung và Xung Hư đạo trưởng phái Võ Đang
-                     trên đỉnh núi Hằng Sơn. Đây chính là bí kíp võ thuật thượng thừa do một cặp vợ chồng viết ra với tên người chồng có chữ "Quỳ", 
-                     người vợ có chữ "Hoa" sáng tạo nên. Sau vì sáng tác bí lục này mà thành ra xích mích, cuối cùng cả hai vợ chồng đã đi ở ẩn,
-                      xa lánh cõi trần và pho bí lục võ công cũng chia làm hai bộ. Bộ của người chồng gọi là "Càn kinh". Bộ của người vợ kêu bằng "Khôn kinh".
-
-                      Trong một số bản sửa đổi thì Quỳ Hoa Bảo Điển do một thái giám tiền triều sáng tạo ra, có tên gọi là "Quỳ Hoa Lão Tổ".</P>
-                </div>
-              </div> -->
-        
-         
-  
-        <script type="module"> 
-        
-        
-       
-
-
-
-import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r119/build/three.module.js';
-import {OrbitControls} from 'https://threejsfundamentals.org/threejs/resources/threejs/r119/examples/jsm/controls/OrbitControls.js';
-import {OBJLoader2} from 'https://threejsfundamentals.org/threejs/resources/threejs/r119/examples/jsm/loaders/OBJLoader2.js';
-import {MTLLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r119/examples/jsm/loaders/MTLLoader.js';
-import {MtlObjBridge} from 'https://threejsfundamentals.org/threejs/resources/threejs/r119/examples/jsm/loaders/obj2/bridge/MtlObjBridge.js';
-
-function main() {
-  const canvas = document.querySelector('#c');
-  const renderer = new THREE.WebGLRenderer({canvas});
-
-  const fov = 45;
-  const aspect = 2; 
-  const near = 0.1;
-  const far = 100;
-  const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-  camera.position.set(10, 20, 30);
-
-  const controls = new OrbitControls(camera, canvas);
-  controls.target.set(0, 5, 0);
-  controls.update();
-
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color('black');
-
-
-
-
-
-
-
-  {
-    const planeSize = 50;
-
-    const loader = new THREE.TextureLoader();
-    const texture = loader.load('https://threejsfundamentals.org/threejs/resources/images/checker.png');
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.magFilter = THREE.NearestFilter;
-    const repeats = planeSize / 10;
-    texture.repeat.set(repeats, repeats);
-
-    const planeGeo = new THREE.PlaneBufferGeometry(planeSize, planeSize);
-    const planeMat = new THREE.MeshPhongMaterial({
-      map: texture,
-      side: THREE.DoubleSide,
-    });
-    const mesh = new THREE.Mesh(planeGeo, planeMat);
-    mesh.rotation.x = Math.PI * -.5;
-    scene.add(mesh);
-  }
-
-
-
-
-
-
-  {
-    const skyColor = "white";  
-    const groundColor = "white"; 
-    const intensity = 1;
-    const light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
-    scene.add(light);
-  }
-
-
-
-
-
-
-
-  {
-    const color = "blue";
-    const intensity = 1;
-    const light = new THREE.DirectionalLight(color, intensity);
-    // light.position.set(5, 10, 2);
-    scene.add(light);
-    // scene.add(light.target);
-  }
-
-
-
-
-
-
-  {
-    const gltfLoader = new GLTFLoader();
-    gltfLoader.load('../three/KnightCharacter.gltf', (gltf) => {
-      const root = gltf.scene;
-      scene.add(root);
-
-      // compute the box that contains all the stuff
-      // from root and below
-      const box = new THREE.Box3().setFromObject(root);
-
-      const boxSize = box.getSize(new THREE.Vector3()).length();
-      const boxCenter = box.getCenter(new THREE.Vector3());
-
-      // set the camera to frame the box
-      frameArea(boxSize * 0.5, boxSize, boxCenter, camera);
-
-      // update the Trackball controls to handle the new size
-      controls.maxDistance = boxSize * 10;
-      controls.target.copy(boxCenter);
-      controls.update();
-    });
-  }
-
-
-   
- 
-
-
-
-
-  function resizeRendererToDisplaySize(renderer) {
-    const canvas = renderer.domElement;
-    const width = canvas.clientWidth;
-    const height = canvas.clientHeight;
-    const needResize = canvas.width !== width || canvas.height !== height;
-    if (needResize) {
-      renderer.setSize(width, height, false);
-    }
-    return needResize;
-  }
-
-
-
-
-
-
-
-
-  function render() {
-
-    if (resizeRendererToDisplaySize(renderer)) {
-      const canvas = renderer.domElement;
-      camera.aspect = canvas.clientWidth / canvas.clientHeight;
-      camera.updateProjectionMatrix();
-    }
-
-    renderer.render(scene, camera);
-
-    requestAnimationFrame(render);
-  }
-
-  requestAnimationFrame(render);
-}
-
-main();
-
-
-
-
-
-
-
-
-
-
-
-        </script>
-        
-    </body>
-    
+            </script>
+        </body>
+    </head>
 </html>
-
-
-
