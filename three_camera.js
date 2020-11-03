@@ -42,7 +42,7 @@ function main() {
     }
 
     const gui = new GUI();
-    gui.add(camera, "fov", 1, 180);
+    gui.add(camera, "zoom", 0.01, 1, 0.01).listen();
     const minMaxGUIHelper = new MinMaxGUIHelper(camera, "near", "far", 0.1);
     gui.add(minMaxGUIHelper, "min", 0.1, 50, 0.1).name("near");
     gui.add(minMaxGUIHelper, "max", 0.1, 50, 0.1).name("far");
@@ -183,13 +183,14 @@ function main() {
         {
             const aspect = setScissorForElement(view1Elem);
 
-            camera.aspect = aspect;
+            camera.left = -aspect;
+            camera.right = aspect;
             camera.updateProjectionMatrix();
             cameraHelper.update();
 
             cameraHelper.visible = false;
 
-            scene.background.set(0x000000);
+            scene.background.set("blue");
 
             renderer.render(scene, camera);
         }
@@ -202,7 +203,7 @@ function main() {
 
             cameraHelper.visible = true;
 
-            scene.background.set(0x000040);
+            scene.background.set("lightblue");
 
             renderer.render(scene, camera2);
         }
