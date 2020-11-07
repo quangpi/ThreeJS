@@ -291,6 +291,32 @@ function main() {
     makePerson(-0, 4, 150, 32, "Người xanh", "green");
     makePerson(+3, 4, 150, 32, "Người đỏ", "red");
 
+     //Thêm file gltf
+     let cars;
+     {
+       const gltfLoader = new GLTFLoader();
+       gltfLoader.load('./q/scene.gltf', (gltf) => {
+         const root = gltf.scene;
+         scene.add(root);
+         cars = root.getObjectByName('Cars');
+   
+         
+           const box = new THREE.Box3().setFromObject(root);
+   
+           const boxSize = box.getSize(new THREE.Vector3()).length();
+           const boxCenter = box.getCenter(new THREE.Vector3());
+   
+           
+           frameArea(boxSize * 3.2, boxSize, boxCenter, camera);
+   
+           
+           controls.maxDistance = boxSize * 10;
+           controls.target.copy(boxCenter);
+           controls.update();
+         });
+      
+     }
+
     function resizeRendererToDisplaySize(renderer) {
         const canvas = renderer.domElement;
         const width = canvas.clientWidth;
