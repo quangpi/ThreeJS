@@ -24,7 +24,7 @@ function main() {
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color("black");
-    
+
     //nền
     {
         const planeSize = 40;
@@ -160,7 +160,7 @@ function main() {
         }
 
         makeXYZGUI(gui, light.position, "Position", updateCamera);
-        
+
         //Gắn Fog
         {
             const folder = gui.addFolder("Fog");
@@ -178,7 +178,118 @@ function main() {
         }
     }
 
-    //add shadows for file gltf
+    function addLight(position) {
+        const color = 0xffffff;
+        const intensity = 1;
+        const light = new THREE.DirectionalLight(color, intensity);
+        light.position.set(...position);
+        scene.add(light);
+        scene.add(light.target);
+    }
+    addLight([-3, 1, 1]);
+    addLight([2, 1, 0.5]);
+
+    const bodyRadiusTop = 0.4;
+    const bodyRadiusBottom = 0.2;
+    const bodyHeight = 2;
+    const bodyRadialSegments = 6;
+    const bodyGeometry = new THREE.CylinderBufferGeometry(bodyRadiusTop, bodyRadiusBottom, bodyHeight, bodyRadialSegments);
+
+    const headRadius = bodyRadiusTop * 0.8;
+    const headLonSegments = 12;
+    const headLatSegments = 5;
+    const headGeometry = new THREE.SphereBufferGeometry(headRadius, headLonSegments, headLatSegments);
+
+    function makeLabelCanvas(baseWidth, size, name) {
+        const borderSize = 2;
+        const ctx = document.createElement("canvas").getContext("2d");
+        const font = `${size}px bold sans-serif`;
+        ctx.font = font;
+
+        const textWidth = ctx.measureText(name).width;
+
+        const doubleBorderSize = borderSize * 2;
+        const width = baseWidth + doubleBorderSize;
+        const height = size + doubleBorderSize;
+        ctx.canvas.width = width;
+        ctx.canvas.height = height;
+
+        ctx.font = font;
+        ctx.textBaseline = "middle";
+        ctx.textAlign = "center";
+
+        ctx.fillStyle = "blue";
+        ctx.fillRect(0, 0, width, height);
+
+        const scaleFactor = Math.min(1, baseWidth / textWidth);
+        ctx.translate(width / 2, height / 2);
+        ctx.scale(scaleFactor, 1);
+        ctx.fillStyle = "white";
+        ctx.fillText(name, 0, 0);
+
+        return ctx.canvas;
+    }
+
+    function makePerson(x, y, labelWidth, size, name, color) {
+        const canvas = makeLabelCanvas(labelWidth, size, name);
+        const texture = new THREE.CanvasTexture(canvas);
+
+        texture.minFilter = THREE.LinearFilter;
+        texture.wrapS = THREE.ClampToEdgeWrapping;
+        texture.wrapT = THREE.ClampToEdgeWrapping;
+
+        const labelMaterial = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+        });
+        const bodyMaterial = new THREE.MeshPhongMaterial({
+            color,
+            flatShading: true,
+        });
+
+        //Khoảng cách hình
+        const root = new THREE.Object3D();
+        root.position.x = x;
+        root.position.y = y;
+
+        //vị trị body(thân)
+        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        root.add(body);
+        body.position.y = bodyHeight / 2;
+
+        //vị trí head(đầu)
+        const head = new THREE.Mesh(headGeometry, bodyMaterial);
+        root.add(head);
+        head.position.y = bodyHeight + headRadius * 1.1;
+
+        const labelBaseScale = 0.01;
+        const label = new THREE.Sprite(labelMaterial);
+        root.add(label);
+        label.position.y = head.position.y + headRadius + size * labelBaseScale;
+
+        label.scale.x = canvas.width * labelBaseScale;
+        label.scale.y = canvas.height * labelBaseScale;
+
+        scene.add(root);
+
+        //shadow
+        body.castShadow = true;
+        body.receiveShadow = true;
+
+        //Hiển thị hình theo ý muốn(Rendering on Demand)
+        const folder = gui.addFolder(`body${x}`);
+        folder.addColor(new ColorGUIHelper(bodyMaterial, "color"), "value").name("color").onChange(requestAnimationFrame);
+        folder.add(body.scale, "x", 0.1, 1.5).name("scale x").onChange(requestAnimationFrame);
+        folder.open();
+
+        return body;
+    }
+
+    makePerson(-3, 4, 110, 32, "Người vàng", "yellow");
+    makePerson(-0, 4, 150, 32, "Người xanh", "green");
+    makePerson(+3, 4, 150, 32, "Người đỏ", "red");
+
+    //add file gltf and add all tab controls in one(control shadow camera, Fog, position renders on demand(scale head, body ))
     let cars;
     let carsSize = 0;
     {
@@ -217,6 +328,7 @@ function main() {
 
         if (cars) {
             cars.rotation.y = time;
+            //    cars.rotation.x = time;
         }
 
         renderer.render(scene, camera);
