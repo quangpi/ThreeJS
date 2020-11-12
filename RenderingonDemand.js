@@ -25,28 +25,26 @@ function main() {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color("black");
 
-    //nền
-    {
-        const planeSize = 40;
+    /////===================== Nền ==========================
+    const planeSize = 40;
 
-        const loader = new THREE.TextureLoader();
-        const texture = loader.load("https://threejsfundamentals.org/threejs/resources/images/checker.png");
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        texture.magFilter = THREE.NearestFilter;
-        const repeats = planeSize / 2;
-        texture.repeat.set(repeats, repeats);
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load("https://threejsfundamentals.org/threejs/resources/images/checker.png");
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.magFilter = THREE.NearestFilter;
+    const repeats = planeSize / 2;
+    texture.repeat.set(repeats, repeats);
 
-        const planeGeo = new THREE.PlaneBufferGeometry(planeSize, planeSize);
-        const planeMat = new THREE.MeshPhongMaterial({
-            map: texture,
-            side: THREE.DoubleSide,
-        });
-        const mesh = new THREE.Mesh(planeGeo, planeMat);
-        mesh.receiveShadow = true;
-        mesh.rotation.x = Math.PI * -0.5;
-        scene.add(mesh);
-    }
+    const planeGeo = new THREE.PlaneBufferGeometry(planeSize, planeSize);
+    const planeMat = new THREE.MeshPhongMaterial({
+        map: texture,
+        side: THREE.DoubleSide,
+    });
+    const mesh = new THREE.Mesh(planeGeo, planeMat);
+    mesh.receiveShadow = true;
+    mesh.rotation.x = Math.PI * -0.5;
+    scene.add(mesh);
 
     {
         const cubeSize = 30;
@@ -289,22 +287,52 @@ function main() {
     makePerson(-0, 4, 150, 32, "Người xanh", "green");
     makePerson(+3, 4, 150, 32, "Người đỏ", "red");
 
-    //add file gltf and add all tab controls in one(control shadow camera, Fog, position renders on demand(scale head, body ))
+    //Change the color of a GLTF Model
+    const materialGltf = new THREE.MeshPhongMaterial({
+        color: 0xff0000,
+        specular: 0xd81919,
+        shininess: 50,
+    });
+    //Bảng màu trên control
+    const params = {
+        modelcolor: 0xff0000, //RED
+    };
+
+    const folder = gui.addFolder("Model Color");
+    folder
+        .addColor(params, "modelcolor")
+        .name("Car Color")
+        .listen()
+        .onChange(function () {
+            materialGltf.color.set(params.modelcolor);
+        });
+    folder.open();
+
+    //add file gltf and add all tab controls in one
     let cars;
     let carsSize = 0;
-    {
-        const gltfLoader = new GLTFLoader();
-        gltfLoader.load("./q/scene.gltf", (gltf) => {
-            gltf.scene.traverse(function (node) {
-                if (node.isMesh) {
-                    node.castShadow = true;
-                }
-            });
-            scene.add(gltf.scene);
-            cars = gltf.scene;
-            cars.position.set(-carsSize - 1, carsSize + 5, 0);
+
+    const gltfLoader = new GLTFLoader();
+    gltfLoader.load("./q/scene.gltf", (gltf) => {
+        gltf.scene.traverse(function (node) {
+            if (node.isMesh) {
+                //đổ bóng
+                node.castShadow = true;
+            }
         });
-    }
+        //Change the color of a GLTF Model
+        const meshMaterial = materialGltf;
+        const model = new THREE.Mesh(gltf, meshMaterial);
+
+        gltf.scene.traverse(function (child) {
+            if (child instanceof THREE.Mesh) {
+                child.material = materialGltf;
+            }
+        });
+        scene.add(gltf.scene);
+        cars = gltf.scene;
+        cars.position.set(-carsSize - 1, carsSize + 5, 0);
+    });
 
     function resizeRendererToDisplaySize(renderer) {
         const canvas = renderer.domElement;
