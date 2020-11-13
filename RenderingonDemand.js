@@ -25,20 +25,28 @@ function main() {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color("black");
 
-    //Change color cube
-    const cubeSize = 20;
-    const cubeGeo = new THREE.BoxBufferGeometry(cubeSize, cubeSize, cubeSize);
-    const cubeMat = new THREE.MeshPhongMaterial({
-        side: THREE.BackSide,
-        color: "lightblue",
-    });
-    const mesh = new THREE.Mesh(cubeGeo, cubeMat);
-    mesh.receiveShadow = true;
-    mesh.rotation.y = Math.PI * -0.5;
+    //Add image to one side of cube
+    {
+        const cubeSize = 40;
+        const loader = new THREE.TextureLoader();
+        const texture = loader.load("https://threejsfundamentals.org/threejs/resources/images/checker.png");
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.magFilter = THREE.NearestFilter;
+        const repeats = cubeSize / 10;
+        texture.repeat.set(repeats, repeats);
 
-    mesh.position.set(0, cubeSize / 2 - 1.5, 0);
-
-    scene.add(mesh);
+        const cubeGeo = new THREE.BoxBufferGeometry(cubeSize, cubeSize, cubeSize, cubeSize);
+        const cubeMat = new THREE.MeshPhongMaterial({
+            map: texture,
+            side: THREE.BackSide,
+        });
+        const mesh = new THREE.Mesh(cubeGeo, cubeMat);
+        mesh.receiveShadow = true;
+        mesh.rotation.y = Math.PI * -0.5;
+        mesh.position.set(0, cubeSize / 2 - 1.5, -4);
+        scene.add(mesh);
+    }
 
     class ColorGUIHelper {
         constructor(object, prop) {
