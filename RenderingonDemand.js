@@ -25,39 +25,20 @@ function main() {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color("black");
 
-    /////===================== Nền ==========================
-    const planeSize = 40;
-
-    const loader = new THREE.TextureLoader();
-    const texture = loader.load("https://threejsfundamentals.org/threejs/resources/images/checker.png");
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.magFilter = THREE.NearestFilter;
-    const repeats = planeSize / 2;
-    texture.repeat.set(repeats, repeats);
-
-    const planeGeo = new THREE.PlaneBufferGeometry(planeSize, planeSize);
-    const planeMat = new THREE.MeshPhongMaterial({
-        map: texture,
-        side: THREE.DoubleSide,
+    //Change color cube
+    const cubeSize = 20;
+    const cubeGeo = new THREE.BoxBufferGeometry(cubeSize, cubeSize, cubeSize);
+    const cubeMat = new THREE.MeshPhongMaterial({
+        side: THREE.BackSide,
+        color: "lightblue",
     });
-    const mesh = new THREE.Mesh(planeGeo, planeMat);
+    const mesh = new THREE.Mesh(cubeGeo, cubeMat);
     mesh.receiveShadow = true;
-    mesh.rotation.x = Math.PI * -0.5;
-    scene.add(mesh);
+    mesh.rotation.y = Math.PI * -0.5;
 
-    {
-        const cubeSize = 30;
-        const cubeGeo = new THREE.BoxBufferGeometry(cubeSize, cubeSize, cubeSize);
-        const cubeMat = new THREE.MeshPhongMaterial({
-            color: "#CCC",
-            side: THREE.BackSide,
-        });
-        const mesh = new THREE.Mesh(cubeGeo, cubeMat);
-        mesh.receiveShadow = true;
-        mesh.position.set(0, cubeSize / 2 - 0.1, 0);
-        scene.add(mesh);
-    }
+    mesh.position.set(0, cubeSize / 2 - 1.5, 0);
+
+    scene.add(mesh);
 
     class ColorGUIHelper {
         constructor(object, prop) {
@@ -305,6 +286,18 @@ function main() {
         .listen()
         .onChange(function () {
             materialGltf.color.set(params.modelcolor);
+        });
+
+    //Change color cube
+    //Đổi màu Box
+    folder
+        .addColor(params, "modelcolor")
+        .name("Box Color")
+        .listen()
+        .onChange(function () {
+            {
+                cubeMat.color.set(params.modelcolor);
+            }
         });
     folder.open();
 
