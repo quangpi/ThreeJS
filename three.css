@@ -1,25 +1,26 @@
- 
-html, body {
-  margin: 0;
-  height: 100%;
+html,
+body {
+    margin: 0;
+    height: 100%;
+    /* overflow: hidden; */
 }
 #c {
-  width: 100%;
-  height: 100%;
-  display: block;
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
-
-.split {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
+/* Look to Select with GLTF model */
+body {
+    margin: 0;
 }
 
-.split > div {
-  width: 100%;
-  height: 100%;
+#info {
+    position: absolute;
+    left: 0;
+    top: 0;
+    background: black;
+    color: white;
+    padding: 0.5em;
+    font-family: monospace;
 }

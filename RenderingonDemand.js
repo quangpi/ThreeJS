@@ -25,6 +25,10 @@ function main() {
     const scene = new THREE.Scene();
     scene.background = new THREE.Color("black");
 
+    const cameraPole = new THREE.Object3D();
+    scene.add(cameraPole);
+    cameraPole.add(camera);
+
     //Add image to one side of cube
     {
         const cubeSize = 40;
@@ -46,6 +50,47 @@ function main() {
         mesh.rotation.y = Math.PI * -0.5;
         mesh.position.set(0, cubeSize / 2 - 1.5, -4);
         scene.add(mesh);
+    }
+
+    //. Look to Select with GLTF model
+    class PickHelper {
+        constructor() {
+            this.raycaster = new THREE.Raycaster();
+            this.pickedObject = null;
+            this.pickedObjectSavedMaterial = null;
+            this.selectMaterial = new THREE.MeshBasicMaterial();
+            this.infoElem = document.querySelector("#info");
+        }
+        pick(normalizedPosition, scene, camera, time) {
+            if (this.pickedObject) {
+                this.pickedObject.material = this.pickedObjectSavedMaterial;
+                this.pickedObject = undefined;
+                this.infoElem.textContent = "";
+            }
+
+            this.raycaster.setFromCamera(normalizedPosition, camera);
+
+            const intersectedObjects = this.raycaster.intersectObjects(pickableMeshes);
+            if (intersectedObjects.length) {
+                this.pickedObject = intersectedObjects[0].object;
+                this.pickedObjectSavedMaterial = this.pickedObject.material;
+                this.pickedObject.material = this.selectMaterial;
+                this.selectMaterial.color.setHex((time * 8) % 2 > 1 ? 0xffff00 : 0xff0000);
+                this.infoElem.textContent = this.pickedObject.name;
+            }
+        }
+    }
+
+    const pickPosition = { x: 0, y: 0 };
+    const pickHelper = new PickHelper();
+    clearPickPosition();
+
+    {
+        const color = 0xffffff;
+        const intensity = 1;
+        const light = new THREE.DirectionalLight(color, intensity);
+        light.position.set(-1, 2, 4);
+        camera.add(light);
     }
 
     class ColorGUIHelper {
@@ -313,27 +358,45 @@ function main() {
     let cars;
     let carsSize = 0;
 
-    const gltfLoader = new GLTFLoader();
-    gltfLoader.load("./q/scene.gltf", (gltf) => {
-        gltf.scene.traverse(function (node) {
-            if (node.isMesh) {
-                //đổ bóng
-                node.castShadow = true;
-            }
-        });
-        //Change the color of a GLTF Model
-        const meshMaterial = materialGltf;
-        const model = new THREE.Mesh(gltf, meshMaterial);
+    //. Look to Select with GLTF model
+    let pickableMeshes = [];
+    {
+        const gltfLoader = new GLTFLoader();
+        gltfLoader.load("./q/scene.gltf", (gltf) => {
+            gltf.scene.traverse(function (node) {
+                if (node.isMesh) {
+                    //đổ bóng
+                    node.castShadow = true;
+                }
+            });
 
-        gltf.scene.traverse(function (child) {
-            if (child instanceof THREE.Mesh) {
-                child.material = materialGltf;
-            }
+            //Change the color of a GLTF Model
+            const meshMaterial = materialGltf;
+            const model = new THREE.Mesh(gltf, meshMaterial);
+
+            gltf.scene.traverse(function (child) {
+                if (child instanceof THREE.Mesh) {
+                    child.material = materialGltf;
+                }
+            });
+            scene.add(gltf.scene);
+            cars = gltf.scene;
+
+            //. Look to Select with GLTF model
+            cars.traverse((node) => {
+                if (node instanceof THREE.Mesh) {
+                    pickableMeshes.push(node);
+                }
+            });
+
+            cars.position.set(-carsSize - 1, carsSize + 5, 0);
+            cars.traverse((node) => {
+                if (node instanceof THREE.Mesh) {
+                    pickableMeshes.push(node);
+                }
+            });
         });
-        scene.add(gltf.scene);
-        cars = gltf.scene;
-        cars.position.set(-carsSize - 1, carsSize + 5, 0);
-    });
+    }
 
     function resizeRendererToDisplaySize(renderer) {
         const canvas = renderer.domElement;
@@ -355,10 +418,9 @@ function main() {
             camera.updateProjectionMatrix();
         }
 
-        if (cars) {
-            cars.rotation.y = time;
-            //    cars.rotation.x = time;
-        }
+        cameraPole.rotation.y = time * 0.1;
+
+        pickHelper.pick(pickPosition, scene, camera, time);
 
         renderer.render(scene, camera);
 
@@ -366,6 +428,42 @@ function main() {
     }
 
     requestAnimationFrame(render);
-}
 
+    function getCanvasRelativePosition(event) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: event.clientX - rect.left,
+            y: event.clientY - rect.top,
+        };
+    }
+
+    function setPickPosition(event) {
+        const pos = getCanvasRelativePosition(event);
+        pickPosition.x = (pos.x / canvas.clientWidth) * 2 - 1;
+        pickPosition.y = (pos.y / canvas.clientHeight) * -2 + 1;
+    }
+
+    function clearPickPosition() {
+        pickPosition.x = -100000;
+        pickPosition.y = -100000;
+    }
+    window.addEventListener("mousemove", setPickPosition);
+    window.addEventListener("mouseout", clearPickPosition);
+    window.addEventListener("mouseleave", clearPickPosition);
+
+    window.addEventListener(
+        "touchstart",
+        (event) => {
+            event.preventDefault();
+            setPickPosition(event.touches[0]);
+        },
+        { passive: false }
+    );
+
+    window.addEventListener("touchmove", (event) => {
+        setPickPosition(event.touches[0]);
+    });
+
+    window.addEventListener("touchend", clearPickPosition);
+}
 main();
