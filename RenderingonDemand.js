@@ -5,6 +5,7 @@ import { MTLLoader } from "https://threejsfundamentals.org/threejs/resources/thr
 import { MtlObjBridge } from "https://threejsfundamentals.org/threejs/resources/threejs/r122/examples/jsm/loaders/obj2/bridge/MtlObjBridge.js";
 import { GLTFLoader } from "https://threejsfundamentals.org/threejs/resources/threejs/r122/examples/jsm/loaders/GLTFLoader.js";
 import { GUI } from "https://threejsfundamentals.org/threejs/../3rdparty/dat.gui.module.js";
+import { Reflector } from "https://threejsfundamentals.org/threejs/resources/threejs/r119/examples/jsm/objects/Reflector.js";
 
 function main() {
     const canvas = document.querySelector("#c");
@@ -28,29 +29,6 @@ function main() {
     const cameraPole = new THREE.Object3D();
     scene.add(cameraPole);
     cameraPole.add(camera);
-
-    //Add image to one side of cube
-    {
-        const cubeSize = 40;
-        const loader = new THREE.TextureLoader();
-        const texture = loader.load("https://threejsfundamentals.org/threejs/resources/images/checker.png");
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        texture.magFilter = THREE.NearestFilter;
-        const repeats = cubeSize / 10;
-        texture.repeat.set(repeats, repeats);
-
-        const cubeGeo = new THREE.BoxBufferGeometry(cubeSize, cubeSize, cubeSize, cubeSize);
-        const cubeMat = new THREE.MeshPhongMaterial({
-            map: texture,
-            side: THREE.BackSide,
-        });
-        const mesh = new THREE.Mesh(cubeGeo, cubeMat);
-        mesh.receiveShadow = true;
-        mesh.rotation.y = Math.PI * -0.5;
-        mesh.position.set(0, cubeSize / 2 - 1.5, -4);
-        scene.add(mesh);
-    }
 
     //. Look to Select with GLTF model
     class PickHelper {
@@ -92,6 +70,62 @@ function main() {
         light.position.set(-1, 2, 4);
         camera.add(light);
     }
+
+    //Mirrors
+    const WIDTH = window.innerWidth;
+    const HEIGHT = window.innerHeight;
+
+    const planeGeo = new THREE.PlaneBufferGeometry(100.1, 100.1);
+
+    let geometry;
+
+    geometry = new THREE.CircleBufferGeometry(40, 64);
+    const groundMirror = new Reflector(geometry, {
+        clipBias: 0.003,
+        textureWidth: WIDTH * window.devicePixelRatio,
+        textureHeight: HEIGHT * window.devicePixelRatio,
+        color: 0x777777,
+    });
+    groundMirror.position.y = 0.5;
+    groundMirror.rotateX(-Math.PI / 2);
+    scene.add(groundMirror);
+
+    geometry = new THREE.PlaneBufferGeometry(100, 100);
+    const verticalMirror = new Reflector(geometry, {
+        clipBias: 0.003,
+        textureWidth: WIDTH * window.devicePixelRatio,
+        textureHeight: HEIGHT * window.devicePixelRatio,
+        color: "0x889999",
+    });
+    verticalMirror.position.y = 50;
+    verticalMirror.position.z = -50;
+    scene.add(verticalMirror);
+
+    //Mỗi plane mỗi màu trong cube
+    //walls dưới
+    const planeBottom = new THREE.Mesh(planeGeo, new THREE.MeshPhongMaterial({ color: 0xffffff }));
+    planeBottom.rotateX(-Math.PI / 2);
+    scene.add(planeBottom);
+
+    const planeFront = new THREE.Mesh(planeGeo, new THREE.MeshPhongMaterial({ color: 0x7f7fff }));
+    planeFront.position.z = 50;
+    planeFront.position.y = 50;
+    planeFront.rotateY(Math.PI);
+    scene.add(planeFront);
+
+    //phải
+    const planeRight = new THREE.Mesh(planeGeo, new THREE.MeshPhongMaterial({ color: 0x00ff00 }));
+    planeRight.position.x = 50;
+    planeRight.position.y = 50;
+    planeRight.rotateY(-Math.PI / 2);
+    scene.add(planeRight);
+
+    //trái
+    const planeLeft = new THREE.Mesh(planeGeo, new THREE.MeshPhongMaterial({ color: 0xff0000 }));
+    planeLeft.position.x = -50;
+    planeLeft.position.y = 50;
+    planeLeft.rotateY(Math.PI / 2);
+    scene.add(planeLeft);
 
     class ColorGUIHelper {
         constructor(object, prop) {
